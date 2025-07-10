@@ -9,8 +9,6 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import RegexpTokenizer
 import re
 from num2words import num2words
-from gensim.models import Word2Vec
-import numpy as np 
 
 def get_investigated_features(dataset):
     """
@@ -273,8 +271,18 @@ def description_preprocessing(df):
             num = int(enitre_result[:-2])
             text = text.replace(enitre_result, num2words(num, ordinal=True))
         return text
+
+    
+    def replace_small_cardinal_numbers(text):
+        # Replace cardinal numbers 1 to 10 with word form
+        matches = re.findall(r'\b([1-9]|10)\b', text)
+        for match in set(matches):
+            word = num2words(int(match))
+            text = re.sub(rf'\b{match}\b', word, text)
+        return text
     
     df["description"]=df["description"].apply(lambda x: replace_ordinal_numbers(x))
+    df["description"]=df["description"].apply(lambda x: replace_small_cardinal_numbers(x))
 
     ## convert " w " or " W " to "with"
     df["description"]=df["description"].str.replace(r' [wW] ', " with ")
